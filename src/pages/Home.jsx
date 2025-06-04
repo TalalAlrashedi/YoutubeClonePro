@@ -1,85 +1,90 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import axios from "axios";
+
+const API_KEY = "AIzaSyBM8EqTfxpbMKiudVnazUrOT7tgpl8Ri6A";
+const BASE_URL = "https://www.googleapis.com/youtube/v3";
 
 const Home = () => {
   const [videos, setVideos] = useState([]);
-  const [search, setSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
-  const API_KEY = "AIzaSyACFPooZgJxYigXMt1dYcmjqcr17cQy7Kw";
 
-  const getVideos = async (searchQuery) => {
+  const fetchPopularVideos = async () => {
     try {
-      const res = await axios.get(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${searchQuery}&key=${API_KEY}&maxResults=10`
-      );
+      const res = await axios.get(`${BASE_URL}/videos`, {
+        params: {
+          part: "snippet,statistics",
+          chart: "mostPopular",
+          maxResults: 12,
+          key: API_KEY,
+        },
+      });
       setVideos(res.data.items);
-    } catch (err) {
-      console.error("Error fetching videos:", err);
+    } catch (error) {
+      console.error("خطأ في جلب الفيديوهات:", error);
+    }
+  };
+
+  const fetchSearchedVideos = async (query) => {
+    try {
+      const res = await axios.get(`${BASE_URL}/search`, {
+        params: {
+          part: "snippet",
+          q: query,
+          maxResults: 12,
+          type: "video",
+          key: API_KEY,
+        },
+      });
+      setVideos(res.data.items);
+    } catch (error) {
+      console.error("خطأ في البحث عن الفيديوهات:", error);
     }
   };
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (!isLoggedIn) {
-      navigate("/login");
-    } else {
-      getVideos();
-    }
+    fetchPopularVideos();
   }, []);
 
-  const searchFunc = (e) => {
-    e.preventDefault();
-    getVideos(search);
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.trim() === "") {
+      fetchPopularVideos();
+    } else {
+      fetchSearchedVideos(query);
+    }
   };
 
   return (
-    <>
-      <Navbar />
+    <div className="bg-[#121212] min-h-screen text-white pt-16">
+      <Navbar onSearch={handleSearch} />
 
-      <div className="mt-16 bg-[#0f0f0f] text-white min-h-screen px-6 py-4">
-        <form
-          onSubmit={searchFunc}
-          className="mb-6 flex gap-2 max-w-xl mx-auto"
-        >
-          <input
-            type="text"
-            placeholder="ابحث عن فيديو..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 p-2 bg-[#121212] text-white border border-gray-700 rounded-md"
-          />
-          <button
-            type="submit"
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
-          >
-            بحث
-          </button>
-        </form>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {videos.map((video) => (
+      <div className="max-w-7xl mx-auto p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {videos.map((video) => {
+          const videoId = video.id.videoId || video.id;
+          const snippet = video.snippet;
+          return (
             <div
-              key={video.id.videoId}
-              onClick={() => navigate(`/detail/${video.id.videoId}`)}
-              className="cursor-pointer hover:scale-[1.03] transition-all duration-200"
+              key={videoId}
+              className="bg-[#202020] rounded-lg overflow-hidden cursor-pointer hover:bg-[#383838]"
+              onClick={() => navigate(`/detail/${videoId}`)}
             >
               <img
-                src={video.snippet.thumbnails.medium.url}
-                className="w-full rounded-lg"
+                src={snippet.thumbnails.high.url}
+                alt={snippet.title}
+                className="w-full h-40 object-cover"
               />
-              <h3 className="mt-2 text-sm font-semibold line-clamp-2">
-                {video.snippet.title}
-              </h3>
-              <p className="text-gray-400 text-xs mt-1">
-                {video.snippet.channelTitle}
-              </p>
+              <div className="p-3">
+                <h3 className="text-sm font-semibold mb-1">{snippet.title}</h3>
+                <p className="text-xs text-gray-400">{snippet.channelTitle}</p>
+              </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
-    </>
+    </div>
   );
 };
 
