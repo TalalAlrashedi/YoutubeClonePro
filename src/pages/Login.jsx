@@ -18,7 +18,6 @@ const Login = () => {
 
   return (
     <div className="flex justify-center items-center h-screen bg-[#f1f1f1]">
-
       <form
         onSubmit={handleLogin}
         className="bg-white p-10 rounded-lg shadow-md w-full max-w-sm"
@@ -34,14 +33,14 @@ const Login = () => {
 
         <input
           type="text"
-          placeholder="البريد الإلكتروني أو الهاتف"
+          placeholder="اسم المستخدم هو user"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           className="w-full px-4 py-3 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
           type="password"
-          placeholder="أدخل كلمة المرور"
+          placeholder="أدخل كلمة المرور 1234"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="w-full px-4 py-3 mb-6 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
